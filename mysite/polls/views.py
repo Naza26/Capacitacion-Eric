@@ -14,18 +14,7 @@ class IndexView(generic.View):
         return render(request, "polls/index.html", context)
 
 
-class DetailView(generic.DetailView):
-    model = Question
-    template_name = "polls/detail.html"
-
-    def get_queryset(self):
-        """
-        Excludes any questions that aren't published yet.
-        """
-        return Question.objects.filter(pub_date__lte=timezone.now())
-
-
-class DetailViewWIP(generic.View):
+class DetailView(generic.View):
     def get(self, request, pk):
         question = get_object_or_404(Question, pk=pk, pub_date__lte=timezone.now())
         return render(request, "polls/detail.html", {"question": question})
@@ -34,11 +23,6 @@ class DetailViewWIP(generic.View):
 class ResultsView(generic.DetailView):
     model = Question
     template_name = "polls/results.html"
-
-
-def detail(request, question_id):
-    question = get_object_or_404(Question, pk=question_id)
-    return render(request, "polls/detail.html", {"question": question})
 
 
 def results(request, question_id):
