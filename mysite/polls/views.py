@@ -20,9 +20,11 @@ class DetailView(generic.View):
         return render(request, "polls/detail.html", {"question": question})
 
 
-class ResultsView(generic.DetailView):
-    model = Question
-    template_name = "polls/results.html"
+class ResultsView(generic.View):
+
+    def get(self, request, pk):
+        question = get_object_or_404(Question, pk=pk)
+        return render(request, "polls/results.html", {"question": question})
 
 
 def results(request, question_id):
