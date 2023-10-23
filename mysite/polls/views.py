@@ -51,7 +51,10 @@ class ResultsView(generic.View):
 class VoteView(generic.View):
 
     def post(self, request, question_id):
-        question = self._published_question(question_id)
+        try:
+            question = self._published_question(question_id)
+        except Question.DoesNotExist:
+            raise Http404("Question does not exist")
         try:
             selected_choice = question.choice_set.get(pk=request.POST["choice"])
         except (KeyError, Choice.DoesNotExist):
