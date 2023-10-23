@@ -23,13 +23,14 @@ class IndexView(generic.View):
 class DetailView(generic.View):
     def get(self, request, pk):
         try:
-            question = self._published_question(pk, timezone.now())
-        except Exception:
+            question = self._published_question(pk)
+        except Question.DoesNotExist:
             raise Http404("Question does not exist")
         return render(request, "polls/detail.html", {"question": question})
 
-    def _published_question(self, pk, published_date):
-        question = Question.objects.get(pk=pk, pub_date__lte=published_date)
+    def _published_question(self, pk):
+        time_of_reading = timezone.now()
+        question = Question.objects.get(pk=pk, pub_date__lte=time_of_reading)
         return question
 
 
