@@ -1,23 +1,36 @@
+from django.utils import timezone
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import generic
-from django.utils import timezone
 from .models import Choice, Question
+from django.http import Http404
 
 
 class IndexView(generic.View):
 
     def get(self, request):
-        latest_question_list = Question.objects.order_by("-pub_date")[:5]
+        latest_question_list = self._latest_questions()
+
         context = {"latest_question_list": latest_question_list}
         return render(request, "polls/index.html", context)
+
+    def _latest_questions(self):
+        latest_question_list = Question.objects.order_by("-pub_date")[:5]
+        return latest_question_list
 
 
 class DetailView(generic.View):
     def get(self, request, pk):
-        question = get_object_or_404(Question, pk=pk, pub_date__lte=timezone.now())
+        try:
+            question = self._published_question(pk, timezone.now())
+        except Exception:
+            raise Http404("Question does not exist")
         return render(request, "polls/detail.html", {"question": question})
+
+    def _published_question(self, pk, published_date):
+        question = Question.objects.get(pk=pk, pub_date__lte=published_date)
+        return question
 
 
 class ResultsView(generic.View):
