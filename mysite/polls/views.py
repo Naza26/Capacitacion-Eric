@@ -39,7 +39,7 @@ class ResultsView(generic.View):
     def get(self, request, pk):
         try:
             question = self._published_question(pk)
-        except Exception:
+        except Question.DoesNotExist:
             raise Http404("Question does not exist")
         return render(request, "polls/results.html", {"question": question})
 
