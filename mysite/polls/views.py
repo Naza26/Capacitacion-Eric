@@ -36,8 +36,15 @@ class DetailView(generic.View):
 class ResultsView(generic.View):
 
     def get(self, request, pk):
-        question = get_object_or_404(Question, pk=pk)
+        try:
+            question = self._published_question(pk)
+        except Exception:
+            raise Http404("Question does not exist")
         return render(request, "polls/results.html", {"question": question})
+
+    def _published_question(self, pk):
+        question = Question.objects.get(pk=pk)
+        return question
 
 
 class VoteView(generic.View):
