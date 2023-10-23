@@ -51,7 +51,7 @@ class ResultsView(generic.View):
 class VoteView(generic.View):
 
     def post(self, request, question_id):
-        question = get_object_or_404(Question, pk=question_id)
+        question = self._published_question(question_id)
         try:
             selected_choice = question.choice_set.get(pk=request.POST["choice"])
         except (KeyError, Choice.DoesNotExist):
@@ -71,3 +71,7 @@ class VoteView(generic.View):
             # with POST data. This prevents data from being posted twice if a
             # user hits the Back button.
             return HttpResponseRedirect(reverse("polls:results", args=(question.id,)))
+
+    def _published_question(self, pk):
+        question = Question.objects.get(pk=pk)
+        return question
