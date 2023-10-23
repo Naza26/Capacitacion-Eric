@@ -55,10 +55,15 @@ class VoteView(generic.View):
             question = self._published_question(question_id)
         except Question.DoesNotExist:
             raise Http404("Question does not exist")
+        choice_does_not_exist = False
         try:
             selected_choice = question.choice_set.get(pk=request.POST["choice"])
+            selected_choice.votes += 1
+            selected_choice.save()
         except (KeyError, Choice.DoesNotExist):
-            # Redisplay the question voting form.
+            choice_does_not_exist = True
+
+        if choice_does_not_exist:
             return render(
                 request,
                 "polls/detail.html",
@@ -68,12 +73,9 @@ class VoteView(generic.View):
                 },
             )
         else:
-            selected_choice.votes += 1
-            selected_choice.save()
-            # Always return an HttpResponseRedirect after successfully dealing
-            # with POST data. This prevents data from being posted twice if a
-            # user hits the Back button.
             return HttpResponseRedirect(reverse("polls:results", args=(question.id,)))
+
+
 
     def _published_question(self, pk):
         question = Question.objects.get(pk=pk)
