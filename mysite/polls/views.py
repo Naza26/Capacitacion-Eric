@@ -51,19 +51,13 @@ class ResultsView(generic.View):
 class VoteView(generic.View):
 
     def post(self, request, question_id):
-        try:
-            question = self._published_question(question_id)
-        except Question.DoesNotExist:
-            raise Http404("Question does not exist")
-        choice_does_not_exist = False
-        try:
-            selected_choice = question.choice_set.get(pk=request.POST["choice"])
-            selected_choice.votes += 1
-            selected_choice.save()
-        except (KeyError, Choice.DoesNotExist):
-            choice_does_not_exist = True
+        choice_id = request.POST["choice"]
 
-        if choice_does_not_exist:
+        an_error_occurred, question = self._add_vote_to_choice(question_id, choice_id)
+
+        if an_error_occurred == "Question does not exist":
+            raise Http404("Question does not exist")
+        if an_error_occurred == "Choice does not exist.":
             return render(
                 request,
                 "polls/detail.html",
@@ -75,7 +69,20 @@ class VoteView(generic.View):
         else:
             return HttpResponseRedirect(reverse("polls:results", args=(question.id,)))
 
-
+    def _add_vote_to_choice(self, question_id, choice_id):
+        error = None
+        try:
+            question = self._published_question(question_id)
+        except Question.DoesNotExist:
+            error = "Question does not exist"
+            return error, None
+        try:
+            selected_choice = question.choice_set.get(pk=choice_id)
+            selected_choice.votes += 1
+            selected_choice.save()
+        except (KeyError, Choice.DoesNotExist):
+            error = "Choice does not exist."
+        return error, question
 
     def _published_question(self, pk):
         question = Question.objects.get(pk=pk)
