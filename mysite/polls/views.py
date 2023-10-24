@@ -48,19 +48,19 @@ class ResultsView(generic.View):
         return question
 
 
-class XXX:
+class VoteResult:
     def __init__(self, error, question):
-        self.error = error
+        self._error = error
         self._question = question
 
     def question(self):
         return self._question
 
     def question_does_not_exist(self):
-        return self.error == "Question does not exist"
+        return self._error == "Question does not exist"
 
     def choice_does_not_exist(self):
-        return self.error == "Choice does not exist."
+        return self._error == "Choice does not exist."
 
 
 class VoteView(generic.View):
@@ -90,14 +90,14 @@ class VoteView(generic.View):
             question = self._published_question(question_id)
         except Question.DoesNotExist:
             error = "Question does not exist"
-            return XXX(error, None)
+            return VoteResult(error, None)
         try:
             selected_choice = self._selected_choice(choice_id, question)
             selected_choice.votes += 1
             selected_choice.save()
         except (KeyError, Choice.DoesNotExist):
             error = "Choice does not exist."
-        return XXX(error, question)
+        return VoteResult(error, question)
 
     def _selected_choice(self, choice_id, question):
         selected_choice = question.choice_set.get(pk=choice_id)
